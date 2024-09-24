@@ -2,17 +2,44 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NewBehaviourScript : MonoBehaviour
+public class PlayerAnimationController : MonoBehaviour
 {
-    // Start is called before the first frame update
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
+
     void Start()
     {
-        
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        
+        if(animator.GetBool("IsAlive") == true){
+            if (Input.GetKey(KeyCode.W)){
+            animator.SetBool("isWalking", true);
+            animator.SetInteger("MovementDirection", 1); // Corrected this line
+            spriteRenderer.flipX = false;
+            }
+            else if (Input.GetKey(KeyCode.D)){
+            animator.SetBool("isWalking", true);
+            animator.SetInteger("MovementDirection", 2); // Corrected this line
+            spriteRenderer.flipX = false;
+            }
+            else if (Input.GetKey(KeyCode.S)){
+            animator.SetBool("isWalking", true);
+            animator.SetInteger("MovementDirection", 3); // Corrected this line
+            spriteRenderer.flipX = false;
+            }
+            else if (Input.GetKey(KeyCode.A)){
+            animator.SetBool("isWalking", true);
+            animator.SetInteger("MovementDirection", 4); // Corrected this line
+            spriteRenderer.flipX = true;
+            }
+            else{
+            animator.SetBool("isWalking", false);
+            animator.SetInteger("MovementDirection", 0);
+            }
+        }        
     }
 }
