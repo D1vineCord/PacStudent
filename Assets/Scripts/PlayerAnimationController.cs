@@ -40,6 +40,9 @@ public class PlayerAnimationController : MonoBehaviour
             animator.SetBool("isWalking", false);
             animator.SetInteger("MovementDirection", 0);
             }
+        }
+        else{
+            animator.SetBool("IsAlive", false);
         }        
     }
 }
