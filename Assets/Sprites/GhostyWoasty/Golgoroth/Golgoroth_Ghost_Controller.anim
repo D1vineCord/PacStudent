@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Joe
+  m_Name: Golgoroth_Ghost_Controller
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -21,9 +21,9 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: 110063094613122208, guid: 2878134b90e93f347a1c0a6eb0ad06fe, type: 3}
+      value: {fileID: 110063094613122208, guid: 3d16e84baa7a2e941b3a7c551f52ddaf, type: 3}
     - time: 0.083333336
-      value: {fileID: 2057516106615078274, guid: f9d0a118e1c0594499dbd1ec92cda165, type: 3}
+      value: {fileID: 2057516106615078274, guid: 111d8d26dbafd2c45a8739073270f5c7, type: 3}
     attribute: m_Sprite
     path: 
     classID: 212
@@ -46,8 +46,8 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: 110063094613122208, guid: 2878134b90e93f347a1c0a6eb0ad06fe, type: 3}
-    - {fileID: 2057516106615078274, guid: f9d0a118e1c0594499dbd1ec92cda165, type: 3}
+    - {fileID: 110063094613122208, guid: 3d16e84baa7a2e941b3a7c551f52ddaf, type: 3}
+    - {fileID: 2057516106615078274, guid: 111d8d26dbafd2c45a8739073270f5c7, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
