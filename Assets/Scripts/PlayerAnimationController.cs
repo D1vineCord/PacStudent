@@ -13,36 +13,55 @@ public class PlayerAnimationController : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    void Update()
+    public void UpdateAnimationWithVelocity(Vector3 currentVelocity)
     {
-        if(animator.GetBool("IsAlive") == true){
-            if (Input.GetKey(KeyCode.W)){
-            animator.SetBool("isWalking", true);
-            animator.SetInteger("MovementDirection", 1); // Corrected this line
-            spriteRenderer.flipX = false;
+        if (animator.GetBool("IsAlive") == true)
+        {
+            // Check if there is movement
+            if (currentVelocity.magnitude > 0.1f)
+            {
+                animator.SetBool("isWalking", true);
+
+                // Set animation based on velocity direction
+                if (Mathf.Abs(currentVelocity.x) > Mathf.Abs(currentVelocity.y))
+                {
+                    // Moving horizontally
+                    if (currentVelocity.x > 0)
+                    {
+                        animator.SetInteger("MovementDirection", 2); // Right
+                        spriteRenderer.flipX = false;
+                    }
+                    else
+                    {
+                        animator.SetInteger("MovementDirection", 4); // Left
+                        spriteRenderer.flipX = true;
+                    }
+                }
+                else
+                {
+                    // Moving vertically
+                    if (currentVelocity.y > 0)
+                    {
+                        animator.SetInteger("MovementDirection", 1); // Up
+                        spriteRenderer.flipX = false;
+                    }
+                    else
+                    {
+                        animator.SetInteger("MovementDirection", 3); // Down
+                        spriteRenderer.flipX = false;
+                    }
+                }
             }
-            else if (Input.GetKey(KeyCode.D)){
-            animator.SetBool("isWalking", true);
-            animator.SetInteger("MovementDirection", 2); // Corrected this line
-            spriteRenderer.flipX = false;
-            }
-            else if (Input.GetKey(KeyCode.S)){
-            animator.SetBool("isWalking", true);
-            animator.SetInteger("MovementDirection", 3); // Corrected this line
-            spriteRenderer.flipX = false;
-            }
-            else if (Input.GetKey(KeyCode.A)){
-            animator.SetBool("isWalking", true);
-            animator.SetInteger("MovementDirection", 4); // Corrected this line
-            spriteRenderer.flipX = true;
-            }
-            else{
-            animator.SetBool("isWalking", false);
-            animator.SetInteger("MovementDirection", 0);
+            else
+            {
+                // Not moving
+                animator.SetBool("isWalking", false);
+                animator.SetInteger("MovementDirection", 0); // Idle
             }
         }
-        else{
+        else
+        {
             animator.SetBool("IsAlive", false);
-        }        
+        }
     }
 }
