@@ -29,8 +29,8 @@ public class PacStudentMovement : MonoBehaviour
     {
         MoveTowardsTarget();
 
-        // Play the audio while moving
-        if (!audioSource.isPlaying)
+        // Play the movement audio only after the intro on the camera is complete
+        if (CameraScript.isIntroComplete && !audioSource.isPlaying)
         {
             audioSource.Play();
         }
@@ -38,7 +38,6 @@ public class PacStudentMovement : MonoBehaviour
         // Calculate the velocity and send it to the animation controller
         Vector3 currentVelocity = GetCurrentVelocity();
 
-        // Assuming you're using PlayerAnimationController on the same GameObject
         PlayerAnimationController playerAnimController = GetComponent<PlayerAnimationController>();
         if (playerAnimController != null)
         {
