@@ -6,7 +6,7 @@ public class PacStudentController : MonoBehaviour
     public float moveSpeed = 5f;
     public AudioClip pelletAudioClip;
     public AudioClip movementAudioClip;
-    // public ParticleSystem dustEffect;
+    public ParticleSystem dustEffect;
 
     public Tilemap[] tilemaps; // Array to store multiple tilemaps
 
@@ -14,6 +14,7 @@ public class PacStudentController : MonoBehaviour
     private bool isLerping;
     private Vector3 lastInput;
     private AudioSource audioSource;
+    
 
     private void Awake()
     {
@@ -40,27 +41,23 @@ public class PacStudentController : MonoBehaviour
         {
             Vector3 direction = Vector3.zero;
 
-            // Check the last input and try to move in that direction
             if (lastInput == Vector3.up && IsWalkable(Vector3.up))
-            {
                 direction = Vector3.up;
-            }
             else if (lastInput == Vector3.down && IsWalkable(Vector3.down))
-            {
                 direction = Vector3.down;
-            }
             else if (lastInput == Vector3.left && IsWalkable(Vector3.left))
-            {
                 direction = Vector3.left;
-            }
             else if (lastInput == Vector3.right && IsWalkable(Vector3.right))
-            {
                 direction = Vector3.right;
-            }
 
             if (direction != Vector3.zero)
             {
                 StartLerping(direction);
+                SetDustEffectRotation(direction); // Set rotation based on direction
+            }
+            else if (dustEffect.isPlaying)
+            {
+                dustEffect.Stop();
             }
         }
     }
@@ -73,7 +70,7 @@ public class PacStudentController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.D)) lastInput = Vector3.right;
     }
 
-private bool IsWalkable(Vector3 direction)
+    private bool IsWalkable(Vector3 direction)
 {
     float rayLength = 0.5f; // Adjust based on character size and tile size
 
@@ -102,29 +99,64 @@ private bool IsWalkable(Vector3 direction)
 
     return true;
 }
-
-    private bool IsAboutToEatPellet()
+private bool IsAboutToEatPellet()
+{
+    // Loop through each tilemap to check for pellets
+    foreach (Tilemap tilemap in tilemaps)
     {
-        Vector3Int pelletPosition = tilemaps[0].WorldToCell(targetPosition);
-
-        foreach (Tilemap tilemap in tilemaps)
+        // Convert the target position to a cell position for the current tilemap
+        Vector3Int cellPosition = tilemap.WorldToCell(targetPosition);
+        
+        // Get the tile at this cell position
+        TileBase pelletTile = tilemap.GetTile(cellPosition);
+        
+        if (pelletTile != null && pelletTile.name == "sprite_0_0") // Adjust based on your pellet tile name
         {
-            TileBase pelletTile = tilemap.GetTile(pelletPosition);
-            if (pelletTile != null && pelletTile.name == "sprite_0_0") // Adjust based on pellet tile name
-            {
-                return true; // Found a pellet
-            }
+            return true; // Pellet found, exit early
         }
-
-        return false;
     }
+
+    // Check for nearby PowerPallet objects (assumes PowerPallet has a unique tag)
+    Collider2D powerPelletCollider = Physics2D.OverlapCircle(targetPosition, 0.5f, LayerMask.GetMask("PowerPallets"));
+    if (powerPelletCollider != null && powerPelletCollider.CompareTag("PowerPallet"))
+    {
+        Debug.Log("PowerPallet found!");
+        return true;
+    }
+
+    return false;
+}
+
 
     private void StartLerping(Vector3 direction)
     {
         targetPosition = transform.position + direction;
         isLerping = true;
         PlayMovementAudio();
-        // dustEffect.Play();
+        if (!dustEffect.isPlaying)
+        {
+            dustEffect.Play();
+        }
+    }
+
+    private void SetDustEffectRotation(Vector3 direction)
+    {
+        if (direction == Vector3.up)
+        {
+            dustEffect.transform.rotation = Quaternion.Euler(90, 90, 0);
+        }
+        else if (direction == Vector3.down)
+        {
+            dustEffect.transform.rotation = Quaternion.Euler(-90, 90, 0);
+        }
+        else if (direction == Vector3.left)
+        {
+            dustEffect.transform.rotation = Quaternion.Euler(0, 90, 0);
+        }
+        else if (direction == Vector3.right)
+        {
+            dustEffect.transform.rotation = Quaternion.Euler(0, 270, -90);
+        }
     }
 
     private void LerpToTarget()
@@ -136,13 +168,20 @@ private bool IsWalkable(Vector3 direction)
             transform.position = targetPosition;
             isLerping = false;
             StopMovementAudio();
-            // dustEffect.Stop();
         }
     }
 
     private void PlayMovementAudio()
     {
-        audioSource.Play();
+        if (CameraScript.isIntroComplete && !audioSource.isPlaying)
+        {
+            if (!audioSource.isPlaying)
+            {
+                audioSource.clip = IsAboutToEatPellet() ? pelletAudioClip : movementAudioClip;
+                audioSource.Play();
+            }
+        }
+        
     }
 
     private void StopMovementAudio()
