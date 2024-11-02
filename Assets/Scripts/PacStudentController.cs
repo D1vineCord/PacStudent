@@ -73,28 +73,35 @@ public class PacStudentController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.D)) lastInput = Vector3.right;
     }
 
-    private bool IsWalkable(Vector3 direction)
+private bool IsWalkable(Vector3 direction)
 {
-    // Define the ray's starting position and length
-    Vector3 rayOrigin = transform.position;
-    float rayLength = 0.6f; // Adjust based on tile size and character collider size
+    float rayLength = 0.5f; // Adjust based on character size and tile size
 
-    // Cast a ray in the direction of movement
-    RaycastHit2D hit = Physics2D.Raycast(rayOrigin, direction, rayLength, LayerMask.GetMask("Walls"));
+    // Define ray origins with slight offsets to cover character bounds
+    Vector3 rayOriginCenter = transform.position + direction;
+    Vector3 rayOriginLeft = rayOriginCenter + new Vector3(0, 0, 0); // Offset left
+    Vector3 rayOriginRight = rayOriginCenter + new Vector3(0, 0, 0); // Offset right
 
-    // Debug the ray to visualize it in the Scene view
-    Debug.DrawRay(rayOrigin, direction * rayLength, Color.red, 0.1f);
+    // Cast three rays and only consider collisions with the "Walls" layer
+    int wallLayer = LayerMask.NameToLayer("Walls");
+    bool hitCenter = Physics2D.Raycast(rayOriginCenter, direction, rayLength, 1 << wallLayer);
+    bool hitLeft = Physics2D.Raycast(rayOriginLeft, direction, rayLength, 1 << wallLayer);
+    bool hitRight = Physics2D.Raycast(rayOriginRight, direction, rayLength, 1 << wallLayer);
 
-    // If the ray hits something in the "Walls" layer, movement is blocked
-    if (hit.collider != null)
+    // Draw debug rays to visualize in the Scene view
+    Debug.DrawRay(rayOriginCenter, direction * rayLength, Color.red, 0.1f);
+    Debug.DrawRay(rayOriginLeft, direction * rayLength, Color.red, 0.1f);
+    Debug.DrawRay(rayOriginRight, direction * rayLength, Color.red, 0.1f);
+
+    // Log if any ray hits something in the Walls layer
+    if (hitCenter || hitLeft || hitRight)
     {
-        Debug.Log("Raycast hit a wall: " + hit.collider.name);
+        Debug.Log("Hit wall in the Walls layer, blocking movement.");
         return false;
     }
 
     return true;
 }
-
 
     private bool IsAboutToEatPellet()
     {
@@ -135,7 +142,6 @@ public class PacStudentController : MonoBehaviour
 
     private void PlayMovementAudio()
     {
-        audioSource.clip = IsAboutToEatPellet() ? pelletAudioClip : movementAudioClip;
         audioSource.Play();
     }
 
