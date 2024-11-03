@@ -7,19 +7,20 @@ public class PacStudentController : MonoBehaviour
     public AudioClip pelletAudioClip;
     public AudioClip movementAudioClip;
     public ParticleSystem dustEffect;
-
-    public Tilemap[] tilemaps; // Array to store multiple tilemaps
-
+    
+    public Tilemap[] tilemaps;
+    
     private Vector3 targetPosition;
     private bool isLerping;
     private Vector3 lastInput;
     private AudioSource audioSource;
-    
+    private PlayerAnimationController animationController;
 
     private void Awake()
     {
         tilemaps = FindObjectsOfType<Tilemap>();
         Debug.Log("Found Tilemaps: " + tilemaps.Length);
+        animationController = GetComponent<PlayerAnimationController>();
     }
 
     private void Start()
@@ -33,11 +34,11 @@ public class PacStudentController : MonoBehaviour
     {
         HandleInput();
 
-        if (isLerping) // Call LerpToTarget if currently lerping
+        if (isLerping)
         {
             LerpToTarget();
         }
-        else // Only check for input if not currently lerping
+        else
         {
             Vector3 direction = Vector3.zero;
 
@@ -53,11 +54,16 @@ public class PacStudentController : MonoBehaviour
             if (direction != Vector3.zero)
             {
                 StartLerping(direction);
-                SetDustEffectRotation(direction); // Set rotation based on direction
+                SetDustEffectRotation(direction);
+                animationController.UpdateAnimationWithVelocity(direction); // Update animation based on movement
             }
-            else if (dustEffect.isPlaying)
+            else
             {
-                dustEffect.Stop();
+                animationController.UpdateAnimationWithVelocity(Vector3.zero); // Idle animation
+                if (dustEffect.isPlaying)
+                {
+                    dustEffect.Stop();
+                }
             }
         }
     }
@@ -71,62 +77,32 @@ public class PacStudentController : MonoBehaviour
     }
 
     private bool IsWalkable(Vector3 direction)
-{
-    float rayLength = 0.5f; // Adjust based on character size and tile size
-
-    // Define ray origins with slight offsets to cover character bounds
-    Vector3 rayOriginCenter = transform.position + direction;
-    Vector3 rayOriginLeft = rayOriginCenter + new Vector3(0, 0, 0); // Offset left
-    Vector3 rayOriginRight = rayOriginCenter + new Vector3(0, 0, 0); // Offset right
-
-    // Cast three rays and only consider collisions with the "Walls" layer
-    int wallLayer = LayerMask.NameToLayer("Walls");
-    bool hitCenter = Physics2D.Raycast(rayOriginCenter, direction, rayLength, 1 << wallLayer);
-    bool hitLeft = Physics2D.Raycast(rayOriginLeft, direction, rayLength, 1 << wallLayer);
-    bool hitRight = Physics2D.Raycast(rayOriginRight, direction, rayLength, 1 << wallLayer);
-
-    // Draw debug rays to visualize in the Scene view
-    Debug.DrawRay(rayOriginCenter, direction * rayLength, Color.red, 0.1f);
-    Debug.DrawRay(rayOriginLeft, direction * rayLength, Color.red, 0.1f);
-    Debug.DrawRay(rayOriginRight, direction * rayLength, Color.red, 0.1f);
-
-    // Log if any ray hits something in the Walls layer
-    if (hitCenter || hitLeft || hitRight)
     {
-        Debug.Log("Hit wall in the Walls layer, blocking movement.");
-        return false;
+        float rayLength = 1f;
+        Vector3 rayOrigin = transform.position + direction * 0.1f;
+
+        int wallLayer = LayerMask.GetMask("Walls");
+        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, direction, rayLength, wallLayer);
+        Debug.DrawRay(rayOrigin, direction * rayLength, Color.red, 0.1f);
+
+        return hit.collider == null;
     }
 
-    return true;
-}
-private bool IsAboutToEatPellet()
-{
-    // Loop through each tilemap to check for pellets
-    foreach (Tilemap tilemap in tilemaps)
+    private bool IsAboutToEatPellet()
     {
-        // Convert the target position to a cell position for the current tilemap
-        Vector3Int cellPosition = tilemap.WorldToCell(targetPosition);
-        
-        // Get the tile at this cell position
-        TileBase pelletTile = tilemap.GetTile(cellPosition);
-        
-        if (pelletTile != null && pelletTile.name == "sprite_0_0") // Adjust based on your pellet tile name
+        foreach (Tilemap tilemap in tilemaps)
         {
-            return true; // Pellet found, exit early
+            Vector3Int cellPosition = tilemap.WorldToCell(targetPosition);
+            TileBase pelletTile = tilemap.GetTile(cellPosition);
+            if (pelletTile != null && pelletTile.name == "sprite_0_0")
+            {
+                return true;
+            }
         }
+
+        Collider2D powerPelletCollider = Physics2D.OverlapCircle(targetPosition, 0.5f, LayerMask.GetMask("PowerPallets"));
+        return powerPelletCollider != null && powerPelletCollider.CompareTag("PowerPallet");
     }
-
-    // Check for nearby PowerPallet objects (assumes PowerPallet has a unique tag)
-    Collider2D powerPelletCollider = Physics2D.OverlapCircle(targetPosition, 0.5f, LayerMask.GetMask("PowerPallets"));
-    if (powerPelletCollider != null && powerPelletCollider.CompareTag("PowerPallet"))
-    {
-        Debug.Log("PowerPallet found!");
-        return true;
-    }
-
-    return false;
-}
-
 
     private void StartLerping(Vector3 direction)
     {
@@ -142,21 +118,13 @@ private bool IsAboutToEatPellet()
     private void SetDustEffectRotation(Vector3 direction)
     {
         if (direction == Vector3.up)
-        {
             dustEffect.transform.rotation = Quaternion.Euler(90, 90, 0);
-        }
         else if (direction == Vector3.down)
-        {
             dustEffect.transform.rotation = Quaternion.Euler(-90, 90, 0);
-        }
         else if (direction == Vector3.left)
-        {
             dustEffect.transform.rotation = Quaternion.Euler(0, 90, 0);
-        }
         else if (direction == Vector3.right)
-        {
             dustEffect.transform.rotation = Quaternion.Euler(0, 270, -90);
-        }
     }
 
     private void LerpToTarget()
@@ -175,13 +143,9 @@ private bool IsAboutToEatPellet()
     {
         if (CameraScript.isIntroComplete && !audioSource.isPlaying)
         {
-            if (!audioSource.isPlaying)
-            {
-                audioSource.clip = IsAboutToEatPellet() ? pelletAudioClip : movementAudioClip;
-                audioSource.Play();
-            }
+            audioSource.clip = IsAboutToEatPellet() ? pelletAudioClip : movementAudioClip;
+            audioSource.Play();
         }
-        
     }
 
     private void StopMovementAudio()

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerAnimationController : MonoBehaviour
@@ -15,7 +13,7 @@ public class PlayerAnimationController : MonoBehaviour
 
     public void UpdateAnimationWithVelocity(Vector3 currentVelocity)
     {
-        if (animator.GetBool("IsAlive") == true)
+        if (animator.GetBool("IsAlive"))
         {
             // Check if there is movement
             if (currentVelocity.magnitude > 0.1f)
@@ -29,12 +27,12 @@ public class PlayerAnimationController : MonoBehaviour
                     if (currentVelocity.x > 0)
                     {
                         animator.SetInteger("MovementDirection", 2); // Right
-                        spriteRenderer.flipX = false;
+                        spriteRenderer.flipX = false; // Face right
                     }
                     else
                     {
                         animator.SetInteger("MovementDirection", 4); // Left
-                        spriteRenderer.flipX = true;
+                        spriteRenderer.flipX = true; // Face left
                     }
                 }
                 else
@@ -43,12 +41,12 @@ public class PlayerAnimationController : MonoBehaviour
                     if (currentVelocity.y > 0)
                     {
                         animator.SetInteger("MovementDirection", 1); // Up
-                        spriteRenderer.flipX = false;
+                        spriteRenderer.flipX = false; // Always face up
                     }
                     else
                     {
                         animator.SetInteger("MovementDirection", 3); // Down
-                        spriteRenderer.flipX = false;
+                        spriteRenderer.flipX = false; // Always face down
                     }
                 }
             }
@@ -61,7 +59,7 @@ public class PlayerAnimationController : MonoBehaviour
         }
         else
         {
-            animator.SetBool("IsAlive", false);
+            animator.SetBool("IsAlive", false); // If needed for "death" state
         }
     }
 }
